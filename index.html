@@ -584,6 +584,12 @@ const EXCLUDED_SUBSTR = ['dtbk','doobie'];
 const EXCLUDED_FIRSTNAME = ['kaleo','mark','jeff','jude'];
 const MIN_TXN = 20;
 
+// Sanitize filename for use as a Firebase key
+// Firebase keys cannot contain: . # $ / [ ]
+function toSafeKey(filename) {
+  return filename.replace(/[.#$\/\[\]]/g, '_');
+}
+
 // dayData lives in memory and syncs to Firebase
 let dayData = {};
 
@@ -664,7 +670,8 @@ function handleFiles(files) {
   const promises = [];
   for (const file of files) {
     if (!file.name.endsWith('.xlsx')) { showError(`${file.name} is not an .xlsx file`); continue; }
-    if (dayData[file.name]) continue;
+    const safeKey = toSafeKey(file.name);
+    if (dayData[safeKey]) continue; // already loaded
     promises.push(readFile(file));
   }
   Promise.all(promises).then(async () => {
@@ -739,7 +746,9 @@ function readFile(file) {
           dayResult[name] = { txn: d.txnCount, ticket: avgTicket, upt };
         }
 
-        dayData[file.name] = dayResult;
+        // Use sanitized key so Firebase doesn't reject dots/slashes in filename
+        const safeKey = toSafeKey(file.name);
+        dayData[safeKey] = dayResult;
         resolve();
       } catch(err) {
         showError(`Error reading ${file.name}: ${err.message}`);
@@ -756,8 +765,9 @@ function renderPills() {
     const pill = document.createElement('div');
     pill.className = 'file-pill';
     const label = document.createElement('span');
+    // Match date pattern from the sanitized key (underscores instead of dots/slashes)
     const dateMatch = fname.match(/(\d{1,2}_\d{1,2}_\d{4})/);
-    label.textContent = dateMatch ? dateMatch[1].replace(/_/g,'/') : fname.replace('.xlsx','');
+    label.textContent = dateMatch ? dateMatch[1].replace(/_/g,'/') : fname.replace('_xlsx','').replace('.xlsx','');
     const rm = document.createElement('span');
     rm.className = 'remove';
     rm.textContent = '×';
