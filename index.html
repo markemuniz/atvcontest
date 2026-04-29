@@ -29,7 +29,6 @@
     overflow-x: hidden;
   }
 
-  /* Background texture */
   body::before {
     content: '';
     position: fixed;
@@ -49,7 +48,6 @@
     padding: 2rem 1.5rem 4rem;
   }
 
-  /* ── HEADER ── */
   header {
     text-align: center;
     padding: 3rem 0 2.5rem;
@@ -99,10 +97,62 @@
   }
   .divider-icon { font-size: 18px; }
 
-  /* ── UPLOAD ZONE ── */
-  .upload-section {
-    margin-bottom: 2.5rem;
+  /* ── SYNC STATUS ── */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(45,90,39,0.15);
+    border: 1px solid rgba(106,171,94,0.2);
+    border-radius: 8px;
+    padding: .625rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 10px;
+    letter-spacing: .08em;
   }
+
+  .sync-status {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--fog);
+  }
+
+  .sync-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--fog);
+    flex-shrink: 0;
+  }
+
+  .sync-dot.connected { background: var(--lime); box-shadow: 0 0 6px var(--lime); }
+  .sync-dot.saving { background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.error { background: #e07070; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
+  }
+
+  .sync-actions { display: flex; gap: .5rem; }
+
+  .btn-clear-db {
+    background: rgba(224,112,112,0.15);
+    border: 1px solid rgba(224,112,112,0.3);
+    color: #e07070;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-clear-db:hover { background: rgba(224,112,112,0.25); }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-section { margin-bottom: 2.5rem; }
 
   .upload-zone {
     border: 1.5px dashed var(--green-mid);
@@ -137,10 +187,7 @@
     letter-spacing: .05em;
   }
 
-  .upload-label strong {
-    color: var(--lime);
-    font-weight: 500;
-  }
+  .upload-label strong { color: var(--lime); font-weight: 500; }
 
   .upload-hint {
     font-size: 10px;
@@ -215,7 +262,7 @@
   .btn-run:active { transform: translateY(0); }
   .btn-run:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-  /* ── STATS SUMMARY ── */
+  /* ── STATS ── */
   .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -346,11 +393,7 @@
 
   .first .podium-name { font-size: 30px; color: var(--gold-light); }
 
-  .podium-metrics {
-    display: flex;
-    flex-direction: column;
-    gap: .375rem;
-  }
+  .podium-metrics { display: flex; flex-direction: column; gap: .375rem; }
 
   .pm-row {
     display: flex;
@@ -371,26 +414,14 @@
     text-transform: uppercase;
   }
 
-  .leaf-bg {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
-    font-size: 70px;
-    opacity: .05;
-    pointer-events: none;
-    transform: rotate(15deg);
-  }
-
-  /* ── REST OF TABLE ── */
+  /* ── TABLE ── */
   .rest-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
   }
 
-  .rest-table thead tr {
-    border-bottom: 1px solid rgba(106,171,94,0.2);
-  }
+  .rest-table thead tr { border-bottom: 1px solid rgba(106,171,94,0.2); }
 
   .rest-table th {
     font-size: 9px;
@@ -411,7 +442,6 @@
   }
   .rest-table td.r { text-align: right; }
   .rest-table td.muted { color: var(--fog); }
-
   .rest-table tr:hover td { background: rgba(45,90,39,0.1); }
 
   .rank-num {
@@ -425,18 +455,7 @@
   .bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; min-width: 50px; }
   .bar-fill { height: 100%; border-radius: 2px; background: var(--green-light); }
   .diff-val { font-size: 10px; min-width: 42px; text-align: right; }
-
   .days-badge { font-size: 10px; letter-spacing: .06em; color: var(--fog); white-space: nowrap; }
-
-  .no-data {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--fog);
-    font-size: 12px;
-    letter-spacing: .08em;
-  }
-
-  .no-data .big { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: rgba(106,171,94,0.2); display: block; margin-bottom: .5rem; }
 
   .error-msg {
     background: rgba(255,80,80,0.1);
@@ -456,6 +475,14 @@
   .animate-in { animation: fadeUp .4s ease forwards; }
 
   #results { display: none; }
+
+  .loading-overlay {
+    text-align: center;
+    padding: 2rem;
+    color: var(--fog);
+    font-size: 11px;
+    letter-spacing: .1em;
+  }
 </style>
 </head>
 <body>
@@ -470,13 +497,22 @@
 
   <div class="divider"><span class="divider-icon">✦</span></div>
 
+  <!-- SYNC STATUS BAR -->
+  <div class="sync-bar">
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLabel">Connecting to database...</span>
+    </div>
+    <div class="sync-actions">
+      <button class="btn-clear-db" id="clearDbBtn" onclick="clearDatabase()">CLEAR ALL DATA</button>
+    </div>
+  </div>
+
   <!-- RESULTS -->
   <div id="results">
     <div class="stats-row" id="statsRow"></div>
-
     <div class="section-title">🏆 Top 3</div>
     <div class="podium" id="podium"></div>
-
     <div class="section-title">Full Standings</div>
     <table class="rest-table">
       <thead>
@@ -492,13 +528,13 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
-
     <div style="text-align:center;margin-top:2rem;font-size:10px;color:rgba(106,171,94,0.4);letter-spacing:.1em">
       THE TRAVEL AGENCY · BROOKLYN
     </div>
   </div>
 
   <div class="divider" style="margin:2.5rem 0"><span class="divider-icon">✦</span></div>
+
   <!-- UPLOAD -->
   <div class="upload-section">
     <div class="upload-zone" id="dropZone">
@@ -521,27 +557,99 @@
     <button class="btn-run" id="runBtn" disabled>CALCULATE STANDINGS</button>
   </div>
 
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBK9DgzyNybpbU-97a2BNLLs7RzwffRiXg",
+  authDomain: "may-contest.firebaseapp.com",
+  databaseURL: "https://may-contest-default-rtdb.firebaseio.com",
+  projectId: "may-contest",
+  storageBucket: "may-contest.firebasestorage.app",
+  messagingSenderId: "1085597928667",
+  appId: "1:1085597928667:web:794e2f19d99f5d4aced0fe"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
 const GOAL_TICKET = 60;
 const EXCLUDED_SUBSTR = ['dtbk','doobie'];
 const EXCLUDED_FIRSTNAME = ['kaleo','mark','jeff','jude'];
 const MIN_TXN = 20;
 
-// store per-day results keyed by filename
-const dayData = {}; // { filename: { budtenderName: {txn, ticket, upt} } }
+// dayData lives in memory and syncs to Firebase
+let dayData = {};
 
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
 const filesList = document.getElementById('filesList');
 const runBtn = document.getElementById('runBtn');
-const errorMsg = document.getElementById('errorMsg');
 const results = document.getElementById('results');
+const syncDot = document.getElementById('syncDot');
+const syncLabel = document.getElementById('syncLabel');
 
-// drag events
+function setSyncStatus(state, msg) {
+  syncDot.className = 'sync-dot ' + state;
+  syncLabel.textContent = msg;
+}
+
+// ── LOAD FROM FIREBASE ON PAGE OPEN ──
+setSyncStatus('', 'Connecting to database...');
+const contestRef = ref(db, 'contestData');
+
+onValue(contestRef, (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    dayData = data;
+    renderPills();
+    runBtn.disabled = Object.keys(dayData).length === 0;
+    calculate();
+    setSyncStatus('connected', 'Synced · ' + Object.keys(dayData).length + ' day(s) loaded');
+  } else {
+    dayData = {};
+    renderPills();
+    runBtn.disabled = true;
+    results.style.display = 'none';
+    setSyncStatus('connected', 'Connected · No data yet — upload your first report');
+  }
+}, (error) => {
+  setSyncStatus('error', 'Connection error: ' + error.message);
+});
+
+// ── SAVE TO FIREBASE ──
+async function saveToFirebase() {
+  setSyncStatus('saving', 'Saving...');
+  try {
+    await set(contestRef, dayData);
+    setSyncStatus('connected', 'Saved · ' + Object.keys(dayData).length + ' day(s) in database');
+  } catch(err) {
+    setSyncStatus('error', 'Save failed: ' + err.message);
+  }
+}
+
+// ── CLEAR DATABASE ──
+window.clearDatabase = async function() {
+  if (!confirm('Clear ALL contest data from the database? This affects all computers.')) return;
+  try {
+    await remove(contestRef);
+    dayData = {};
+    renderPills();
+    runBtn.disabled = true;
+    results.style.display = 'none';
+    setSyncStatus('connected', 'Cleared · Database is empty');
+  } catch(err) {
+    setSyncStatus('error', 'Clear failed: ' + err.message);
+  }
+};
+
+// ── DRAG & DROP ──
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
@@ -552,19 +660,20 @@ dropZone.addEventListener('drop', e => {
 fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
 function handleFiles(files) {
-  errorMsg.innerHTML = '';
+  document.getElementById('errorMsg').innerHTML = '';
   const promises = [];
   for (const file of files) {
-    if (!file.name.endsWith('.xlsx')) {
-      showError(`${file.name} is not an .xlsx file`);
-      continue;
-    }
-    if (dayData[file.name]) continue; // already loaded
+    if (!file.name.endsWith('.xlsx')) { showError(`${file.name} is not an .xlsx file`); continue; }
+    if (dayData[file.name]) continue;
     promises.push(readFile(file));
   }
-  Promise.all(promises).then(() => {
+  Promise.all(promises).then(async () => {
     renderPills();
     runBtn.disabled = Object.keys(dayData).length === 0;
+    if (Object.keys(dayData).length > 0) {
+      await saveToFirebase();
+      calculate();
+    }
   });
 }
 
@@ -577,12 +686,10 @@ function readFile(file) {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-        // find header row
         let headerIdx = -1;
         for (let i = 0; i < rows.length; i++) {
           if (rows[i] && rows[i].includes('Budtender Name') && rows[i].includes('Order ID')) {
-            headerIdx = i;
-            break;
+            headerIdx = i; break;
           }
         }
         if (headerIdx === -1) { showError(`Can't find headers in ${file.name}`); resolve(); return; }
@@ -594,34 +701,27 @@ function readFile(file) {
           budtender: col('Budtender Name'),
           invSold: col('Total Inventory Sold'),
           netSales: col('Net Sales'),
-          returnDate: col('Return Date'),
         };
 
-        // group by order
-        const orders = {}; // orderId -> { budtender, units, netSales }
+        const orders = {};
         for (let i = headerIdx + 1; i < rows.length; i++) {
           const row = rows[i];
           if (!row || !row[C.orderId]) continue;
           const name = (row[C.budtender] || '').toString().trim();
           if (!name) continue;
-
-          // exclude DTBK / Doobie
           const nameLower = name.toLowerCase();
           const firstName = nameLower.split(' ')[0];
           if (EXCLUDED_SUBSTR.some(ex => nameLower.includes(ex))) continue;
           if (EXCLUDED_FIRSTNAME.includes(firstName)) continue;
-
           const inv = parseFloat(row[C.invSold]) || 0;
           const net = parseFloat(row[C.netSales]) || 0;
           if (inv <= 0 || net <= 0) continue;
-
           const oid = row[C.orderId];
           if (!orders[oid]) orders[oid] = { budtender: name, units: 0, netSales: 0 };
           orders[oid].units += inv;
           orders[oid].netSales += net;
         }
 
-        // aggregate per budtender
         const bData = {};
         for (const oid of Object.keys(orders)) {
           const o = orders[oid];
@@ -631,7 +731,6 @@ function readFile(file) {
           bData[o.budtender].txnCount++;
         }
 
-        // build per-day result (only those >= MIN_TXN)
         const dayResult = {};
         for (const [name, d] of Object.entries(bData)) {
           if (d.txnCount < MIN_TXN) continue;
@@ -657,21 +756,26 @@ function renderPills() {
     const pill = document.createElement('div');
     pill.className = 'file-pill';
     const label = document.createElement('span');
-    label.textContent = fname.replace('Sales_Report_', '').replace(/-\d{4}-\d{2}-\d{2}\.xlsx$/, '').replace('_', '/').replace('Sales_Report_','');
-    // cleaner label: just show the date
     const dateMatch = fname.match(/(\d{1,2}_\d{1,2}_\d{4})/);
     label.textContent = dateMatch ? dateMatch[1].replace(/_/g,'/') : fname.replace('.xlsx','');
     const rm = document.createElement('span');
     rm.className = 'remove';
     rm.textContent = '×';
-    rm.onclick = () => { delete dayData[fname]; renderPills(); runBtn.disabled = Object.keys(dayData).length===0; };
+    rm.onclick = async () => {
+      delete dayData[fname];
+      renderPills();
+      runBtn.disabled = Object.keys(dayData).length === 0;
+      await saveToFirebase();
+      if (Object.keys(dayData).length > 0) calculate();
+      else results.style.display = 'none';
+    };
     pill.appendChild(label);
     pill.appendChild(rm);
     filesList.appendChild(pill);
   }
 }
 
-runBtn.addEventListener('click', calculate);
+document.getElementById('runBtn').addEventListener('click', calculate);
 
 function calculate() {
   const allNames = new Set();
@@ -706,10 +810,8 @@ function fmt$(n) { return '$' + n.toFixed(2); }
 function fmtU(n) { return n.toFixed(2); }
 
 function renderStats(data, totalDays) {
-  const leader = data[0];
   const groupTicket = data.reduce((s,d)=>s+d.avgTicket,0)/data.length;
   const groupUpt = data.reduce((s,d)=>s+d.avgUpt,0)/data.length;
-
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-card">
       <div class="stat-label">Days Tracked</div>
@@ -725,19 +827,15 @@ function renderStats(data, totalDays) {
       <div class="stat-label">Group Avg UPT</div>
       <div class="stat-val">${fmtU(groupUpt)}</div>
       <div class="stat-sub">units per transaction</div>
-    </div>
-  `;
+    </div>`;
 }
 
 function renderPodium(top, totalDays) {
-  // top[0]=1st, top[1]=2nd, top[2]=3rd (sorted by avg ticket descending)
-  // visual layout: 2nd left | 1st center | 3rd right
   const slots = [
     { dataIdx: 1, cssClass: 'second', crown: '🥈', medal: '2ND PLACE' },
     { dataIdx: 0, cssClass: 'first',  crown: '🏆', medal: '1ST PLACE' },
     { dataIdx: 2, cssClass: 'third',  crown: '🥉', medal: '3RD PLACE' },
   ];
-
   const cards = slots.map(slot => {
     const d = top[slot.dataIdx];
     if (!d) return '<div></div>';
@@ -747,23 +845,13 @@ function renderPodium(top, totalDays) {
         <span class="medal">${slot.medal}</span>
         <div class="podium-name">${d.name}</div>
         <div class="podium-metrics">
-          <div class="pm-row">
-            <span class="pm-label">AVG TICKET</span>
-            <span class="pm-val">${fmt$(d.avgTicket)}</span>
-          </div>
-          <div class="pm-row">
-            <span class="pm-label">AVG UPT</span>
-            <span class="pm-val">${fmtU(d.avgUpt)}</span>
-          </div>
-          <div class="pm-row">
-            <span class="pm-label">TOTAL TXN</span>
-            <span class="pm-val">${d.totalTxn}</span>
-          </div>
+          <div class="pm-row"><span class="pm-label">AVG TICKET</span><span class="pm-val">${fmt$(d.avgTicket)}</span></div>
+          <div class="pm-row"><span class="pm-label">AVG UPT</span><span class="pm-val">${fmtU(d.avgUpt)}</span></div>
+          <div class="pm-row"><span class="pm-label">TOTAL TXN</span><span class="pm-val">${d.totalTxn}</span></div>
         </div>
         <div class="podium-days">${d.days} of ${totalDays} day${totalDays!==1?'s':''}</div>
       </div>`;
   });
-
   document.getElementById('podium').innerHTML = cards.join('');
 }
 
@@ -775,8 +863,6 @@ function renderTable(data, totalDays) {
     const diffStr = (diff>=0?'+':'') + diff.toFixed(2);
     const diffColor = diff>=0 ? '#6aab5e' : '#e07070';
     const barPct = Math.min((d.avgTicket / (maxTicket * 1.05)) * 100, 100).toFixed(1);
-
-
     html += `<tr>
       <td><span class="rank-num">${i+4}</span></td>
       <td>${d.name}</td>
@@ -798,29 +884,7 @@ function renderTable(data, totalDays) {
 function showError(msg) {
   document.getElementById('errorMsg').innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
 }
-</script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBK9DgzyNybpbU-97a2BNLLs7RzwffRiXg",
-    authDomain: "may-contest.firebaseapp.com",
-    projectId: "may-contest",
-    storageBucket: "may-contest.firebasestorage.app",
-    messagingSenderId: "1085597928667",
-    appId: "1:1085597928667:web:794e2f19d99f5d4aced0fe",
-    measurementId: "G-X74V7YM9DV"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
 </script>
 </body>
 </html>
