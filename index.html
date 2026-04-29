@@ -584,10 +584,10 @@ const EXCLUDED_SUBSTR = ['dtbk','doobie'];
 const EXCLUDED_FIRSTNAME = ['kaleo','mark','jeff','jude'];
 const MIN_TXN = 20;
 
-// Sanitize filename for use as a Firebase key
+// Sanitize any string for use as a Firebase key
 // Firebase keys cannot contain: . # $ / [ ]
-function toSafeKey(filename) {
-  return filename.replace(/[.#$\/\[\]]/g, '_');
+function toSafeKey(str) {
+  return str.replace(/[.#$\/\[\]]/g, '_');
 }
 
 // dayData lives in memory and syncs to Firebase
@@ -743,12 +743,14 @@ function readFile(file) {
           if (d.txnCount < MIN_TXN) continue;
           const avgTicket = d.txnSales.reduce((a,b)=>a+b,0) / d.txnSales.length;
           const upt = d.units / d.txnCount;
-          dayResult[name] = { txn: d.txnCount, ticket: avgTicket, upt };
+          // Use sanitized name as Firebase key, but store the original display name
+          const safeNameKey = toSafeKey(name);
+          dayResult[safeNameKey] = { txn: d.txnCount, ticket: avgTicket, upt, name };
         }
 
-        // Use sanitized key so Firebase doesn't reject dots/slashes in filename
-        const safeKey = toSafeKey(file.name);
-        dayData[safeKey] = dayResult;
+        // Use sanitized filename as Firebase key
+        const safeFileKey = toSafeKey(file.name);
+        dayData[safeFileKey] = dayResult;
         resolve();
       } catch(err) {
         showError(`Error reading ${file.name}: ${err.message}`);
@@ -765,7 +767,6 @@ function renderPills() {
     const pill = document.createElement('div');
     pill.className = 'file-pill';
     const label = document.createElement('span');
-    // Match date pattern from the sanitized key (underscores instead of dots/slashes)
     const dateMatch = fname.match(/(\d{1,2}_\d{1,2}_\d{4})/);
     label.textContent = dateMatch ? dateMatch[1].replace(/_/g,'/') : fname.replace('_xlsx','').replace('.xlsx','');
     const rm = document.createElement('span');
@@ -788,21 +789,27 @@ function renderPills() {
 document.getElementById('runBtn').addEventListener('click', calculate);
 
 function calculate() {
-  const allNames = new Set();
-  for (const day of Object.values(dayData)) Object.keys(day).forEach(n => allNames.add(n));
+  // Collect all unique safe name keys across all days
+  const allNameKeys = new Set();
+  for (const day of Object.values(dayData)) Object.keys(day).forEach(k => allNameKeys.add(k));
 
   const combined = [];
   const totalDays = Object.keys(dayData).length;
 
-  for (const name of allNames) {
+  for (const nameKey of allNameKeys) {
     const appearances = [];
+    let displayName = nameKey; // fallback
     for (const day of Object.values(dayData)) {
-      if (day[name]) appearances.push(day[name]);
+      if (day[nameKey]) {
+        appearances.push(day[nameKey]);
+        // Use the stored display name (with periods etc.) if available
+        if (day[nameKey].name) displayName = day[nameKey].name;
+      }
     }
     const totalTxn = appearances.reduce((s,d)=>s+d.txn,0);
     const avgTicket = appearances.reduce((s,d)=>s+d.ticket,0) / appearances.length;
     const avgUpt = appearances.reduce((s,d)=>s+d.upt,0) / appearances.length;
-    combined.push({ name, totalTxn, days: appearances.length, avgTicket, avgUpt, totalDays });
+    combined.push({ name: displayName, totalTxn, days: appearances.length, avgTicket, avgUpt, totalDays });
   }
 
   combined.sort((a,b) => b.avgTicket - a.avgTicket);
