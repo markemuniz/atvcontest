@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Travel Agency — May Contest</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2d5a27;
+    --green-mid: #3d7a35;
+    --green-light: #6aab5e;
+    --lime: #b5e853;
+    --cream: #f5f0e8;
+    --gold: #d4a843;
+    --gold-light: #f0c96a;
+    --charcoal: #1a1a18;
+    --smoke: #2e2e2a;
+    --fog: #c8c4ba;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--charcoal);
+    color: var(--cream);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(45,90,39,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(45,90,39,0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+    position: relative;
+  }
+
+  .store-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .25em;
+    color: var(--green-light);
+    text-transform: uppercase;
+    margin-bottom: .75rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 10vw, 88px);
+    letter-spacing: .04em;
+    line-height: .95;
+    color: var(--cream);
+    margin-bottom: .5rem;
+  }
+
+  h1 span { color: var(--lime); }
+
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: .15em;
+    color: var(--fog);
+    text-transform: uppercase;
+    margin-top: .75rem;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    opacity: .3;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--green-light);
+  }
+  .divider-icon { font-size: 18px; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .upload-zone {
+    border: 1.5px dashed var(--green-mid);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s ease;
+    background: rgba(45,90,39,0.08);
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--lime);
+    background: rgba(181,232,83,0.06);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon { font-size: 32px; margin-bottom: .5rem; }
+
+  .upload-label {
+    font-size: 13px;
+    color: var(--fog);
+    letter-spacing: .05em;
+  }
+
+  .upload-label strong {
+    color: var(--lime);
+    font-weight: 500;
+  }
+
+  .upload-hint {
+    font-size: 10px;
+    color: var(--green-light);
+    margin-top: .375rem;
+    letter-spacing: .08em;
+  }
+
+  .files-loaded {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: center;
+  }
+
+  .file-pill {
+    font-size: 10px;
+    background: rgba(45,90,39,0.4);
+    border: 1px solid var(--green-mid);
+    border-radius: 20px;
+    padding: 3px 10px;
+    color: var(--lime);
+    letter-spacing: .05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .file-pill .remove {
+    cursor: pointer;
+    opacity: .6;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .file-pill .remove:hover { opacity: 1; color: #ff6b6b; }
+
+  .rules-bar {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 10px;
+    letter-spacing: .06em;
+    color: var(--fog);
+    justify-content: center;
+  }
+
+  .rule-tag {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+
+  .btn-run {
+    display: block;
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: .875rem;
+    background: var(--lime);
+    color: var(--charcoal);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-run:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-run:active { transform: translateY(0); }
+  .btn-run:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  /* ── STATS SUMMARY ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 2.5rem;
+  }
+
+  .stat-card {
+    background: rgba(45,90,39,0.15);
+    border: 1px solid rgba(106,171,94,0.2);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: .2em;
+    color: var(--green-light);
+    text-transform: uppercase;
+    margin-bottom: .375rem;
+  }
+
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--cream);
+    letter-spacing: .05em;
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 9px;
+    color: var(--fog);
+    margin-top: .25rem;
+    letter-spacing: .05em;
+  }
+
+  /* ── PODIUM ── */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: .1em;
+    color: var(--cream);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(106,171,94,0.4), transparent);
+  }
+
+  .podium {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1fr;
+    gap: 12px;
+    margin-bottom: 2.5rem;
+    align-items: end;
+  }
+
+  .podium-card {
+    border-radius: 12px;
+    padding: 1.5rem 1rem 1.25rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s;
+  }
+  .podium-card:hover { transform: translateY(-3px); }
+
+  .podium-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: .06;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 10px,
+      rgba(255,255,255,1) 10px, rgba(255,255,255,1) 11px
+    );
+    pointer-events: none;
+  }
+
+  .podium-card.first {
+    background: linear-gradient(145deg, #3a2800, #1a1200);
+    border: 1.5px solid var(--gold);
+    padding-top: 2rem;
+  }
+
+  .podium-card.second {
+    background: linear-gradient(145deg, #1e2e1a, #111a0e);
+    border: 1.5px solid var(--green-light);
+  }
+
+  .podium-card.third {
+    background: linear-gradient(145deg, #1e2014, #111208);
+    border: 1.5px solid rgba(181,232,83,0.3);
+  }
+
+  .crown { font-size: 28px; margin-bottom: .5rem; display: block; }
+
+  .medal {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: .2em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: .75rem;
+  }
+
+  .first .medal { background: var(--gold); color: var(--charcoal); }
+  .second .medal { background: var(--green-light); color: var(--charcoal); }
+  .third .medal { background: rgba(181,232,83,0.2); color: var(--lime); border: 1px solid rgba(181,232,83,0.4); }
+
+  .podium-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: .05em;
+    color: var(--cream);
+    margin-bottom: .75rem;
+    line-height: 1.1;
+  }
+
+  .first .podium-name { font-size: 30px; color: var(--gold-light); }
+
+  .podium-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: .375rem;
+  }
+
+  .pm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .pm-label { color: var(--fog); letter-spacing: .05em; }
+  .pm-val { font-weight: 500; color: var(--cream); }
+  .first .pm-val { color: var(--gold-light); }
+
+  .podium-days {
+    margin-top: .75rem;
+    font-size: 9px;
+    letter-spacing: .1em;
+    color: var(--green-light);
+    text-transform: uppercase;
+  }
+
+  .leaf-bg {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 70px;
+    opacity: .05;
+    pointer-events: none;
+    transform: rotate(15deg);
+  }
+
+  /* ── REST OF TABLE ── */
+  .rest-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .rest-table thead tr {
+    border-bottom: 1px solid rgba(106,171,94,0.2);
+  }
+
+  .rest-table th {
+    font-size: 9px;
+    letter-spacing: .15em;
+    color: var(--green-light);
+    text-transform: uppercase;
+    padding: .5rem .75rem;
+    text-align: left;
+    font-weight: 400;
+  }
+  .rest-table th.r { text-align: right; }
+
+  .rest-table td {
+    padding: .625rem .75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--cream);
+    vertical-align: middle;
+  }
+  .rest-table td.r { text-align: right; }
+  .rest-table td.muted { color: var(--fog); }
+
+  .rest-table tr:hover td { background: rgba(45,90,39,0.1); }
+
+  .rank-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: rgba(181,232,83,0.3);
+    letter-spacing: .05em;
+  }
+
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; min-width: 50px; }
+  .bar-fill { height: 100%; border-radius: 2px; background: var(--green-light); }
+  .diff-val { font-size: 10px; min-width: 42px; text-align: right; }
+
+  .days-badge { font-size: 10px; letter-spacing: .06em; color: var(--fog); white-space: nowrap; }
+
+  .no-data {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--fog);
+    font-size: 12px;
+    letter-spacing: .08em;
+  }
+
+  .no-data .big { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: rgba(106,171,94,0.2); display: block; margin-bottom: .5rem; }
+
+  .error-msg {
+    background: rgba(255,80,80,0.1);
+    border: 1px solid rgba(255,80,80,0.3);
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    font-size: 11px;
+    color: #ff9999;
+    margin-top: .75rem;
+    letter-spacing: .04em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeUp .4s ease forwards; }
+
+  #results { display: none; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <div class="store-tag">The Travel Agency · Brooklyn</div>
+    <h1>MAY<br><span>CONTEST</span></h1>
+    <div class="subtitle">Avg Ticket &amp; Units Per Transaction · May 2026</div>
+  </header>
+
+  <div class="divider"><span class="divider-icon">✦</span></div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="section-title">🏆 Top 3</div>
+    <div class="podium" id="podium"></div>
+
+    <div class="section-title">Full Standings</div>
+    <table class="rest-table">
+      <thead>
+        <tr>
+          <th style="width:32px">#</th>
+          <th>Budtender</th>
+          <th class="r">Total Txn</th>
+          <th class="r">Days</th>
+          <th class="r">Avg Ticket</th>
+          <th style="min-width:140px">vs $60 goal</th>
+          <th class="r">Avg UPT</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div style="text-align:center;margin-top:2rem;font-size:10px;color:rgba(106,171,94,0.4);letter-spacing:.1em">
+      THE TRAVEL AGENCY · BROOKLYN
+    </div>
+  </div>
+
+  <div class="divider" style="margin:2.5rem 0"><span class="divider-icon">✦</span></div>
+  <!-- UPLOAD -->
+  <div class="upload-section">
+    <div class="upload-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx" multiple>
+      <div class="upload-icon">📂</div>
+      <div class="upload-label"><strong>Drop daily reports here</strong> or click to browse</div>
+      <div class="upload-hint">ACCEPTS .XLSX · ADD ONE OR MORE DAYS AT ONCE</div>
+    </div>
+
+    <div class="files-loaded" id="filesList"></div>
+
+    <div class="rules-bar">
+      <span class="rule-tag">EXCLUDES DTBK &amp; DOOBIE</span>
+      <span class="rule-tag">MIN 20 TRANSACTIONS</span>
+      <span class="rule-tag">AVG OF DAILY AVERAGES</span>
+    </div>
+
+    <div id="errorMsg"></div>
+
+    <button class="btn-run" id="runBtn" disabled>CALCULATE STANDINGS</button>
+  </div>
+
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const GOAL_TICKET = 60;
+const EXCLUDED_SUBSTR = ['dtbk','doobie'];
+const EXCLUDED_FIRSTNAME = ['kaleo','mark','jeff','jude'];
+const MIN_TXN = 20;
+
+// store per-day results keyed by filename
+const dayData = {}; // { filename: { budtenderName: {txn, ticket, upt} } }
+
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const filesList = document.getElementById('filesList');
+const runBtn = document.getElementById('runBtn');
+const errorMsg = document.getElementById('errorMsg');
+const results = document.getElementById('results');
+
+// drag events
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+function handleFiles(files) {
+  errorMsg.innerHTML = '';
+  const promises = [];
+  for (const file of files) {
+    if (!file.name.endsWith('.xlsx')) {
+      showError(`${file.name} is not an .xlsx file`);
+      continue;
+    }
+    if (dayData[file.name]) continue; // already loaded
+    promises.push(readFile(file));
+  }
+  Promise.all(promises).then(() => {
+    renderPills();
+    runBtn.disabled = Object.keys(dayData).length === 0;
+  });
+}
+
+function readFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+        // find header row
+        let headerIdx = -1;
+        for (let i = 0; i < rows.length; i++) {
+          if (rows[i] && rows[i].includes('Budtender Name') && rows[i].includes('Order ID')) {
+            headerIdx = i;
+            break;
+          }
+        }
+        if (headerIdx === -1) { showError(`Can't find headers in ${file.name}`); resolve(); return; }
+
+        const headers = rows[headerIdx];
+        const col = (name) => headers.indexOf(name);
+        const C = {
+          orderId: col('Order ID'),
+          budtender: col('Budtender Name'),
+          invSold: col('Total Inventory Sold'),
+          netSales: col('Net Sales'),
+          returnDate: col('Return Date'),
+        };
+
+        // group by order
+        const orders = {}; // orderId -> { budtender, units, netSales }
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || !row[C.orderId]) continue;
+          const name = (row[C.budtender] || '').toString().trim();
+          if (!name) continue;
+
+          // exclude DTBK / Doobie
+          const nameLower = name.toLowerCase();
+          const firstName = nameLower.split(' ')[0];
+          if (EXCLUDED_SUBSTR.some(ex => nameLower.includes(ex))) continue;
+          if (EXCLUDED_FIRSTNAME.includes(firstName)) continue;
+
+          const inv = parseFloat(row[C.invSold]) || 0;
+          const net = parseFloat(row[C.netSales]) || 0;
+          if (inv <= 0 || net <= 0) continue;
+
+          const oid = row[C.orderId];
+          if (!orders[oid]) orders[oid] = { budtender: name, units: 0, netSales: 0 };
+          orders[oid].units += inv;
+          orders[oid].netSales += net;
+        }
+
+        // aggregate per budtender
+        const bData = {};
+        for (const oid of Object.keys(orders)) {
+          const o = orders[oid];
+          if (!bData[o.budtender]) bData[o.budtender] = { txnSales: [], units: 0, txnCount: 0 };
+          bData[o.budtender].txnSales.push(o.netSales);
+          bData[o.budtender].units += o.units;
+          bData[o.budtender].txnCount++;
+        }
+
+        // build per-day result (only those >= MIN_TXN)
+        const dayResult = {};
+        for (const [name, d] of Object.entries(bData)) {
+          if (d.txnCount < MIN_TXN) continue;
+          const avgTicket = d.txnSales.reduce((a,b)=>a+b,0) / d.txnSales.length;
+          const upt = d.units / d.txnCount;
+          dayResult[name] = { txn: d.txnCount, ticket: avgTicket, upt };
+        }
+
+        dayData[file.name] = dayResult;
+        resolve();
+      } catch(err) {
+        showError(`Error reading ${file.name}: ${err.message}`);
+        resolve();
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function renderPills() {
+  filesList.innerHTML = '';
+  for (const fname of Object.keys(dayData)) {
+    const pill = document.createElement('div');
+    pill.className = 'file-pill';
+    const label = document.createElement('span');
+    label.textContent = fname.replace('Sales_Report_', '').replace(/-\d{4}-\d{2}-\d{2}\.xlsx$/, '').replace('_', '/').replace('Sales_Report_','');
+    // cleaner label: just show the date
+    const dateMatch = fname.match(/(\d{1,2}_\d{1,2}_\d{4})/);
+    label.textContent = dateMatch ? dateMatch[1].replace(/_/g,'/') : fname.replace('.xlsx','');
+    const rm = document.createElement('span');
+    rm.className = 'remove';
+    rm.textContent = '×';
+    rm.onclick = () => { delete dayData[fname]; renderPills(); runBtn.disabled = Object.keys(dayData).length===0; };
+    pill.appendChild(label);
+    pill.appendChild(rm);
+    filesList.appendChild(pill);
+  }
+}
+
+runBtn.addEventListener('click', calculate);
+
+function calculate() {
+  const allNames = new Set();
+  for (const day of Object.values(dayData)) Object.keys(day).forEach(n => allNames.add(n));
+
+  const combined = [];
+  const totalDays = Object.keys(dayData).length;
+
+  for (const name of allNames) {
+    const appearances = [];
+    for (const day of Object.values(dayData)) {
+      if (day[name]) appearances.push(day[name]);
+    }
+    const totalTxn = appearances.reduce((s,d)=>s+d.txn,0);
+    const avgTicket = appearances.reduce((s,d)=>s+d.ticket,0) / appearances.length;
+    const avgUpt = appearances.reduce((s,d)=>s+d.upt,0) / appearances.length;
+    combined.push({ name, totalTxn, days: appearances.length, avgTicket, avgUpt, totalDays });
+  }
+
+  combined.sort((a,b) => b.avgTicket - a.avgTicket);
+
+  renderStats(combined, totalDays);
+  renderPodium(combined.slice(0,3), totalDays);
+  renderTable(combined.slice(3), totalDays);
+
+  results.style.display = 'block';
+  results.classList.add('animate-in');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function fmt$(n) { return '$' + n.toFixed(2); }
+function fmtU(n) { return n.toFixed(2); }
+
+function renderStats(data, totalDays) {
+  const leader = data[0];
+  const groupTicket = data.reduce((s,d)=>s+d.avgTicket,0)/data.length;
+  const groupUpt = data.reduce((s,d)=>s+d.avgUpt,0)/data.length;
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Days Tracked</div>
+      <div class="stat-val">${totalDays}</div>
+      <div class="stat-sub">of 31 in May</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Group Avg Ticket</div>
+      <div class="stat-val">${fmt$(groupTicket)}</div>
+      <div class="stat-sub">eligible budtenders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Group Avg UPT</div>
+      <div class="stat-val">${fmtU(groupUpt)}</div>
+      <div class="stat-sub">units per transaction</div>
+    </div>
+  `;
+}
+
+function renderPodium(top, totalDays) {
+  // top[0]=1st, top[1]=2nd, top[2]=3rd (sorted by avg ticket descending)
+  // visual layout: 2nd left | 1st center | 3rd right
+  const slots = [
+    { dataIdx: 1, cssClass: 'second', crown: '🥈', medal: '2ND PLACE' },
+    { dataIdx: 0, cssClass: 'first',  crown: '🏆', medal: '1ST PLACE' },
+    { dataIdx: 2, cssClass: 'third',  crown: '🥉', medal: '3RD PLACE' },
+  ];
+
+  const cards = slots.map(slot => {
+    const d = top[slot.dataIdx];
+    if (!d) return '<div></div>';
+    return `
+      <div class="podium-card ${slot.cssClass}">
+        <span class="crown">${slot.crown}</span>
+        <span class="medal">${slot.medal}</span>
+        <div class="podium-name">${d.name}</div>
+        <div class="podium-metrics">
+          <div class="pm-row">
+            <span class="pm-label">AVG TICKET</span>
+            <span class="pm-val">${fmt$(d.avgTicket)}</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">AVG UPT</span>
+            <span class="pm-val">${fmtU(d.avgUpt)}</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">TOTAL TXN</span>
+            <span class="pm-val">${d.totalTxn}</span>
+          </div>
+        </div>
+        <div class="podium-days">${d.days} of ${totalDays} day${totalDays!==1?'s':''}</div>
+      </div>`;
+  });
+
+  document.getElementById('podium').innerHTML = cards.join('');
+}
+
+function renderTable(data, totalDays) {
+  const maxTicket = data.length ? Math.max(...data.map(d=>d.avgTicket), GOAL_TICKET) : GOAL_TICKET;
+  let html = '';
+  data.forEach((d,i) => {
+    const diff = d.avgTicket - GOAL_TICKET;
+    const diffStr = (diff>=0?'+':'') + diff.toFixed(2);
+    const diffColor = diff>=0 ? '#6aab5e' : '#e07070';
+    const barPct = Math.min((d.avgTicket / (maxTicket * 1.05)) * 100, 100).toFixed(1);
+
+
+    html += `<tr>
+      <td><span class="rank-num">${i+4}</span></td>
+      <td>${d.name}</td>
+      <td class="r muted">${d.totalTxn}</td>
+      <td class="r days-badge">${d.days}/${totalDays}</td>
+      <td class="r">${fmt$(d.avgTicket)}</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill" style="width:${barPct}%"></div></div>
+          <span class="diff-val" style="color:${diffColor}">${diffStr}</span>
+        </div>
+      </td>
+      <td class="r">${fmtU(d.avgUpt)}</td>
+    </tr>`;
+  });
+  document.getElementById('tableBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--fog)">No additional budtenders</td></tr>';
+}
+
+function showError(msg) {
+  document.getElementById('errorMsg').innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+}
+</script>
+</body>
+</html>
